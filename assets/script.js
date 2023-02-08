@@ -28,9 +28,12 @@ async function OwFetch(url){
     const response = await fetch(url);
     const data = await response.json();
     console.log("2nd",data);
-    let weatherData = {};
+    let weatherData = [];
     for(let i=0;i<34;i+=8){
-       let date = data.list[i].dt_txt; 
+       let date = data.list[i].dt_txt;
+       date =  date.split(" ");
+       date = date[0];
+       console.log(date); 
        let temp = data.list[i].main.temp;
        let fTemp = 1.8*(temp-273) + 32;
        let flTemp = data.list[i].main.feels_like;
@@ -39,9 +42,11 @@ async function OwFetch(url){
        let wndSpd = data.list[i].wind.speed;
        let icon = data.list[i].weather[0].icon;
        let iconUrl = 'http://openweathermap.org/img/wn/'+icon+'@2x.png';
-       weatherData[i] = [date,fTemp,fFlTemp,humd,wndSpd,iconUrl]; 
+       let iconDesc = data.list[i].weather[0].description;
+       weatherData[i] = [date,fTemp,fFlTemp,humd,wndSpd,iconUrl, iconDesc]; 
     }
     localStorage.setItem('WeatherData',JSON.stringify(weatherData));
+
 
 }
 
@@ -63,12 +68,14 @@ function dispForecast(obj,disp){
     wCard.append(pFlT); 
     let pHum  =  document.createElement('p');
     pHum.textContent = "Humidity: "+obj[j][3];
-    wCard.append();  
+    wCard.append(pHum);  
     let pWndSp  =  document.createElement('p');
     pWndSp.textContent = "Wind Speed: "+obj[j][4];
     wCard.append(pWndSp);  
     let iconImg  =  document.createElement('img');
-    iconImg.src = ""
+    iconImg.setAttribute('src',obj[j][5]);
+    iconImg.setAttribute('alt',obj[j][6]);
+    wCard.append(iconImg);
     disp.append(wCard);
 
 
@@ -90,9 +97,10 @@ inputBtn.addEventListener('click',{
 
 city = localStorage.getItem('City');
 let OwUrl = 'https://api.openweathermap.org/data/2.5/forecast?q='+city+'&appid='+OwAPIkey;
-console.log(OwUrl);
 OwFetch(OwUrl);
 let weatherData = localStorage.getItem('WeatherData');
+weatherData = JSON.parse(weatherData);
+console.log(weatherData.length);
 let dispLoc = document.getElementById('forecastDisp')
 dispForecast(weatherData,dispLoc);
 
